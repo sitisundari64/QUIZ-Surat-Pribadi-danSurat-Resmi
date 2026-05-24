@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Surat Pribadi &amp; Resmi</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Nunito', sans-serif; }
+    .page { display: none; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.5s; }
+    .page.active { display: block; opacity: 1; transform: translateY(0); }
+    .page.exit { opacity: 0; transform: translateY(-20px); }
+    .option-btn { transition: all 0.2s; }
+    .option-btn:hover { transform: scale(1.02); }
+    .option-btn.selected { border-color: #3b82f6; background: #dbeafe; }
+    .option-btn.correct { border-color: #22c55e; background: #dcfce7; }
+    .option-btn.wrong { border-color: #ef4444; background: #fee2e2; }
+    .progress-bar { transition: width 0.4s ease; }
+    .bounce { animation: bounce 0.5s; }
+    @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    .stimulus-box { background: linear-gradient(135deg, #fef3c7, #fff7ed); border-left: 4px solid #f59e0b; }
+    .checkbox-item.selected { background: #dbeafe; border-color: #3b82f6; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full overflow-auto relative" style="background: linear-gradient(135deg, #e0f2fe, #fef9c3, #fce7d6);"><!-- Watermark -->
+  <div class="fixed bottom-4 right-4 text-gray-300 opacity-40 pointer-events-none text-sm font-semibold" style="transform: rotate(-15deg);">
+   Siti Sundari
+  </div><!-- START PAGE -->
+  <div id="startPage" class="page active min-h-full flex items-center justify-center p-4">
+   <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+    <div class="text-6xl mb-4">
+     📝✉️
+    </div>
+    <h1 id="mainTitle" class="text-2xl font-extrabold text-blue-600 mb-2">Quiz Surat Pribadi &amp; Resmi</h1>
+    <p class="text-gray-600 mb-6">Kelas 7 SMP - Uji pemahamanmu tentang surat pribadi dan surat resmi!</p>
+    <div class="bg-blue-50 rounded-xl p-4 mb-6 text-left text-sm text-gray-600">
+     <p>📌 25 Pilihan Ganda</p>
+     <p>📌 5 PG Kompleks</p>
+     <p>📌 5 Benar/Salah</p>
+     <p>📌 5 Esai</p>
+    </div><input id="nameInput" type="text" placeholder="Masukkan namamu..." class="w-full p-3 border-2 border-blue-200 rounded-xl mb-4 focus:outline-none focus:border-blue-400 text-center text-lg">
+    <p id="nameError" class="text-red-500 text-sm mb-2 hidden">Nama harus diisi!</p><button onclick="startQuiz()" class="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white font-bold py-3 rounded-xl hover:from-blue-500 hover:to-blue-700 transition-all text-lg">Mulai Quiz! 🚀</button>
+   </div>
+  </div><!-- QUIZ PAGE -->
+  <div id="quizPage" class="page min-h-full p-4 pb-20">
+   <div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-lg p-4 mb-4 sticky top-2 z-10">
+     <div class="flex justify-between items-center mb-2">
+      <span id="qNumber" class="font-bold text-blue-600">Soal 1/40</span> <span id="qType" class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">Pilihan Ganda</span>
+     </div>
+     <div class="w-full bg-gray-200 rounded-full h-3">
+      <div id="progressBar" class="progress-bar bg-gradient-to-r from-blue-400 to-green-400 h-3 rounded-full" style="width:2.5%"></div>
+     </div>
+    </div>
+    <div id="questionContainer" class="bg-white rounded-2xl shadow-lg p-6"></div>
+    <div class="flex justify-between mt-4">
+     <button id="prevBtn" onclick="prevQuestion()" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-xl hover:bg-gray-300 hidden">← Sebelumnya</button> <button id="nextBtn" onclick="nextQuestion()" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-xl hover:bg-blue-600 ml-auto">Selanjutnya →</button>
+    </div>
+   </div>
+  </div><!-- RESULT PAGE -->
+  <div id="resultPage" class="page min-h-full flex items-center justify-center p-4">
+   <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+    <div id="resultEmoji" class="text-6xl mb-4">
+     🎉
+    </div>
+    <h2 class="text-2xl font-extrabold text-blue-600 mb-2">Hasil Quiz</h2>
+    <p id="resultName" class="text-lg text-gray-600 mb-4"></p>
+    <div id="resultScore" class="text-5xl font-extrabold text-green-500 mb-4"></div>
+    <p id="resultMotivation" class="text-gray-600 mb-6 text-lg"></p><button onclick="resetQuiz()" class="w-full bg-gradient-to-r from-peach-400 to-yellow-400 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all text-lg" style="background: linear-gradient(to right, #f97316, #eab308);">Ulangi Quiz 🔄</button>
+   </div>
+  </div>
+  <script>
+const defaultConfig = { quiz_title: "Quiz Surat Pribadi & Resmi" };
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    document.getElementById('mainTitle').textContent = config.quiz_title || defaultConfig.quiz_title;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [],
+    borderables: [],
+    fontEditable: undefined,
+    fontSizeable: undefined
+  }),
+  mapToEditPanelValues: (config) => new Map([["quiz_title", config.quiz_title || defaultConfig.quiz_title]])
+});
+
+// Questions data
+const questions = [
+  // PG 1-25
+  {type:'pg',stimulus:'Perhatikan penggalan surat berikut:\n"Bandung, 5 Januari 2024\nDear Sinta,\nApa kabar? Aku sangat merindukanmu..."',q:'Penggalan surat di atas termasuk jenis surat...',options:['Surat resmi','Surat pribadi','Surat dinas','Surat niaga'],answer:1},
+  {type:'pg',stimulus:'Perhatikan:\n"Dengan hormat,\nBersama surat ini kami bermaksud mengundang Bapak/Ibu..."',q:'Ciri bahasa pada penggalan surat di atas adalah...',options:['Bahasa gaul','Bahasa baku dan sopan','Bahasa daerah','Bahasa sehari-hari'],answer:1},
+  {type:'pg',stimulus:'Bagian surat: (1) Tanggal surat (2) Nomor surat (3) Lampiran (4) Hal',q:'Bagian yang hanya ada pada surat resmi adalah...',options:['Tanggal surat','Salam pembuka','Nomor surat, lampiran, hal','Tanda tangan'],answer:2},
+  {type:'pg',stimulus:'Surat pribadi dari Andi untuk temannya:\n"Hai Budi, gimana liburanmu? Seru nggak?"',q:'Salam pembuka pada surat pribadi bersifat...',options:['Formal dan kaku','Bebas dan akrab','Harus menggunakan "Dengan hormat"','Tidak perlu ada'],answer:1},
+  {type:'pg',stimulus:'Perhatikan struktur surat resmi:\n1. Kop surat\n2. Nomor surat\n3. Tanggal\n4. Perihal\n5. Alamat tujuan',q:'Urutan yang benar dari struktur surat resmi adalah...',options:['1-3-2-4-5','1-2-3-4-5','3-1-2-5-4','1-3-2-5-4'],answer:0},
+  {type:'pg',stimulus:'Contoh penutup surat:\n"Demikian surat ini kami sampaikan. Atas perhatian dan kerja samanya, kami ucapkan terima kasih."',q:'Penutup surat tersebut cocok untuk...',options:['Surat untuk sahabat','Surat resmi/dinas','Surat cinta','Diary pribadi'],answer:1},
+  {type:'pg',stimulus:'Rina menulis surat untuk neneknya yang tinggal di desa.',q:'Tujuan Rina menulis surat tersebut adalah...',options:['Mengajukan permohonan','Menyampaikan kabar dan rindu','Melaporkan kegiatan resmi','Mengundang rapat'],answer:1},
+  {type:'pg',stimulus:'"Jakarta, 10 Februari 2024\nKepada Yth.\nKepala SMP Negeri 1\ndi Tempat"',q:'Penulisan alamat surat di atas digunakan pada...',options:['Surat pribadi','Surat resmi','Surat untuk teman','Kartu pos'],answer:1},
+  {type:'pg',stimulus:'Perhatikan kalimat:\n"Sehubungan dengan kegiatan classmeeting, kami memohon izin penggunaan lapangan."',q:'Fungsi surat dengan isi seperti di atas adalah...',options:['Memberikan informasi pribadi','Mengajukan permohonan izin','Menyampaikan salam','Bercerita tentang liburan'],answer:1},
+  {type:'pg',stimulus:'Dani menulis surat untuk temannya:\n"Btw, besok jadi nggak kita ke bioskop? Kabarin ya!"',q:'Bahasa yang digunakan Dani termasuk...',options:['Bahasa baku','Bahasa tidak baku/santai','Bahasa ilmiah','Bahasa sastra'],answer:1},
+  {type:'pg',stimulus:'Kop surat berisi: nama instansi, alamat, nomor telepon, dan logo.',q:'Kop surat berfungsi sebagai...',options:['Hiasan surat','Identitas pengirim/instansi','Isi surat','Penutup surat'],answer:1},
+  {type:'pg',stimulus:'"Hormat kami,\n\nKetua OSIS\nAhmad Fauzi"',q:'Bagian surat di atas disebut...',options:['Pembuka surat','Isi surat','Penutup dan tanda tangan','Kop surat'],answer:2},
+  {type:'pg',stimulus:'Surat undangan rapat OSIS ditandatangani oleh Ketua dan Sekretaris OSIS.',q:'Hal ini menunjukkan bahwa surat tersebut bersifat...',options:['Pribadi','Resmi','Tidak penting','Rahasia'],answer:1},
+  {type:'pg',stimulus:'"Salam kangen,\nTemanmu selalu,\nLisa"',q:'Penutup surat di atas cocok untuk surat...',options:['Resmi','Dinas','Pribadi','Niaga'],answer:2},
+  {type:'pg',stimulus:'Perhatikan:\n"Lampiran: 1 lembar\nHal: Permohonan Izin Kegiatan"',q:'"Lampiran" pada surat resmi berisi informasi tentang...',options:['Nama pengirim','Jumlah dokumen yang disertakan','Tanggal surat','Nama penerima'],answer:1},
+  {type:'pg',stimulus:'Pak Guru meminta siswa menulis surat untuk meminjam ruang lab.',q:'Jenis surat yang harus ditulis siswa adalah...',options:['Surat pribadi','Surat resmi permohonan','Surat cinta','Puisi'],answer:1},
+  {type:'pg',stimulus:'"Dengan ini kami mengundang Bapak/Ibu untuk hadir pada:\nHari: Senin\nTanggal: 15 Januari 2024\nTempat: Aula Sekolah"',q:'Surat tersebut termasuk surat...',options:['Pemberitahuan','Permohonan','Undangan resmi','Pribadi'],answer:2},
+  {type:'pg',stimulus:'Amel menulis surat untuk kakaknya yang kuliah di luar kota. Ia bercerita tentang nilai rapornya.',q:'Isi surat Amel termasuk...',options:['Informasi resmi','Kabar pribadi','Pengumuman','Laporan dinas'],answer:1},
+  {type:'pg',stimulus:'"Yang terhormat Bapak Kepala Sekolah..."',q:'Sapaan di atas digunakan pada surat...',options:['Pribadi untuk teman','Resmi','Untuk adik','Diary'],answer:1},
+  {type:'pg',stimulus:'Perhatikan perbedaan:\nA: "Hai Dika! Kamu sehat kan?"\nB: "Dengan hormat, bersama ini kami..."',q:'Perbedaan utama kedua penggalan surat tersebut terletak pada...',options:['Warna kertas','Ragam bahasa yang digunakan','Jumlah halaman','Ukuran amplop'],answer:1},
+  {type:'pg',stimulus:'Surat resmi dari sekolah untuk orang tua siswa tentang study tour.',q:'Surat tersebut bertujuan untuk...',options:['Curhat','Memberitahukan informasi resmi','Mengajak bermain','Bercerita'],answer:1},
+  {type:'pg',stimulus:'"Atas perhatiannya, kami ucapkan terima kasih."',q:'Kalimat tersebut biasa terdapat pada bagian ... surat resmi.',options:['Pembuka','Isi','Penutup','Kop'],answer:2},
+  {type:'pg',stimulus:'Rio menulis: "Dear Mama, aku di sini baik-baik saja. Jangan khawatir ya."',q:'Surat Rio termasuk surat pribadi karena...',options:['Menggunakan kop surat','Ditujukan untuk keluarga dengan bahasa akrab','Ada nomor surat','Ditandatangani ketua'],answer:1},
+  {type:'pg',stimulus:'Perhatikan:\n"Nomor: 023/OSIS/I/2024"',q:'Penomoran surat berfungsi untuk...',options:['Hiasan','Arsip dan administrasi','Menambah panjang surat','Gaya-gayaan'],answer:1},
+  {type:'pg',stimulus:'Ciri surat pribadi: tidak ada kop, bahasa santai, tidak ada nomor surat.',q:'Manakah yang BUKAN ciri surat pribadi?',options:['Bahasa akrab','Tidak ada nomor surat','Ada kop instansi','Bebas format'],answer:2},
+  // PG Kompleks 26-30
+  {type:'pgk',stimulus:'Perhatikan bagian-bagian surat berikut:\n1. Kop surat\n2. Salam pembuka\n3. Nomor surat\n4. Isi surat\n5. Lampiran\n6. Tanda tangan',q:'Pilih bagian yang HANYA terdapat pada surat resmi (pilih semua yang benar):',options:['Kop surat','Salam pembuka','Nomor surat','Isi surat','Lampiran'],answers:[0,2,4]},
+  {type:'pgk',stimulus:'Fungsi surat pribadi antara lain:\n- Menyampaikan kabar\n- Mengundang acara keluarga\n- Meminta maaf kepada teman\n- Mengajukan proposal kegiatan\n- Mengungkapkan perasaan',q:'Pilih yang termasuk fungsi surat pribadi (pilih semua yang benar):',options:['Menyampaikan kabar','Mengundang acara keluarga','Meminta maaf kepada teman','Mengajukan proposal kegiatan','Mengungkapkan perasaan'],answers:[0,1,2,4]},
+  {type:'pgk',stimulus:'Perhatikan ciri-ciri berikut:\nA. Bahasa baku\nB. Bahasa santai\nC. Ada kop surat\nD. Format bebas\nE. Ada nomor surat',q:'Pilih ciri-ciri surat RESMI (pilih semua yang benar):',options:['Bahasa baku','Bahasa santai','Ada kop surat','Format bebas','Ada nomor surat'],answers:[0,2,4]},
+  {type:'pgk',stimulus:'Langkah menulis surat resmi:\n1. Tulis kop surat\n2. Tentukan tujuan\n3. Gunakan bahasa baku\n4. Tambahkan emoji\n5. Cantumkan nomor surat',q:'Pilih langkah yang BENAR dalam menulis surat resmi:',options:['Tulis kop surat','Tentukan tujuan','Gunakan bahasa baku','Tambahkan emoji','Cantumkan nomor surat'],answers:[0,1,2,4]},
+  {type:'pgk',stimulus:'Bagian penutup surat resmi biasanya berisi:\nA. Ucapan terima kasih\nB. Cerita liburan\nC. Harapan tindak lanjut\nD. Gossip terbaru\nE. Tanda tangan dan nama terang',q:'Pilih yang termasuk bagian penutup surat resmi:',options:['Ucapan terima kasih','Cerita liburan','Harapan tindak lanjut','Gossip terbaru','Tanda tangan dan nama terang'],answers:[0,2,4]},
+  // Benar-Salah 31-35
+  {type:'bs',stimulus:'Pernyataan: "Surat pribadi harus menggunakan kop surat dan nomor surat."',q:'Apakah pernyataan di atas BENAR atau SALAH?',answer:false},
+  {type:'bs',stimulus:'Pernyataan: "Surat resmi menggunakan bahasa baku dan format tertentu."',q:'Apakah pernyataan di atas BENAR atau SALAH?',answer:true},
+  {type:'bs',stimulus:'Pernyataan: "Surat pribadi boleh menggunakan bahasa gaul dan emoji."',q:'Apakah pernyataan di atas BENAR atau SALAH?',answer:true},
+  {type:'bs',stimulus:'Pernyataan: "Tanda tangan tidak diperlukan dalam surat resmi."',q:'Apakah pernyataan di atas BENAR atau SALAH?',answer:false},
+  {type:'bs',stimulus:'Pernyataan: "Surat undangan rapat termasuk jenis surat resmi."',q:'Apakah pernyataan di atas BENAR atau SALAH?',answer:true},
+  // Esai 36-40
+  {type:'esai',stimulus:'Perhatikan situasi berikut:\nKamu ingin mengundang temanmu yang pindah sekolah untuk datang ke acara ulang tahunmu minggu depan.',q:'Tulislah salam pembuka dan paragraf pertama surat pribadi untuk situasi di atas!'},
+  {type:'esai',stimulus:'Perhatikan:\nOSIS SMP Maju Bersama ingin meminjam aula untuk acara pentas seni pada tanggal 20 Maret 2024.',q:'Tulislah bagian isi surat resmi permohonan izin untuk situasi tersebut!'},
+  {type:'esai',stimulus:'Perbedaan surat pribadi dan surat resmi sangat mendasar dari segi bahasa, format, dan tujuan.',q:'Jelaskan 3 perbedaan utama antara surat pribadi dan surat resmi!'},
+  {type:'esai',stimulus:'Kamu mendapat tugas menulis surat resmi untuk mengundang wali murid ke acara class meeting.',q:'Tulislah bagian pembuka surat resmi undangan tersebut lengkap dengan salam pembuka!'},
+  {type:'esai',stimulus:'Seorang siswa menulis surat pribadi kepada gurunya yang sedang sakit.',q:'Menurut pendapatmu, apakah surat kepada guru harus menggunakan format resmi? Jelaskan alasanmu!'}
+];
+
+let currentQ = 0;
+let answers = new Array(40).fill(null);
+let playerName = '';
+
+function startQuiz() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { document.getElementById('nameError').classList.remove('hidden'); return; }
+  playerName = name;
+  showPage('quizPage');
+  renderQuestion();
+}
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.classList.add('exit'); });
+  setTimeout(() => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('exit'));
+    document.getElementById(pageId).classList.add('active');
+  }, 300);
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const total = questions.length;
+  document.getElementById('qNumber').textContent = `Soal ${currentQ+1}/${total}`;
+  document.getElementById('progressBar').style.width = `${((currentQ+1)/total)*100}%`;
+  
+  const types = {pg:'Pilihan Ganda',pgk:'PG Kompleks',bs:'Benar/Salah',esai:'Esai'};
+  document.getElementById('qType').textContent = types[q.type];
+  
+  document.getElementById('prevBtn').classList.toggle('hidden', currentQ === 0);
+  document.getElementById('nextBtn').textContent = currentQ === total-1 ? 'Selesai ✓' : 'Selanjutnya →';
+
+  let html = `<div class="stimulus-box rounded-xl p-4 mb-4 text-sm whitespace-pre-line">${q.stimulus}</div>`;
+  html += `<p class="font-bold text-gray-800 mb-4 text-lg">${q.q}</p>`;
+
+  if (q.type === 'pg') {
+    html += q.options.map((o,i) => `<button onclick="selectPG(${i})" class="option-btn w-full text-left p-3 mb-2 border-2 rounded-xl ${answers[currentQ]===i?'selected':''}">${String.fromCharCode(65+i)}. ${o}</button>`).join('');
+  } else if (q.type === 'pgk') {
+    const sel = answers[currentQ] || [];
+    html += `<p class="text-sm text-blue-600 mb-2">*Pilih lebih dari satu jawaban</p>`;
+    html += q.options.map((o,i) => `<button onclick="selectPGK(${i})" class="checkbox-item option-btn w-full text-left p-3 mb-2 border-2 rounded-xl ${sel.includes(i)?'selected':''}">${sel.includes(i)?'☑':'☐'} ${o}</button>`).join('');
+  } else if (q.type === 'bs') {
+    html += `<button onclick="selectBS(true)" class="option-btn w-full text-left p-3 mb-2 border-2 rounded-xl ${answers[currentQ]===true?'selected':''}">✓ Benar</button>`;
+    html += `<button onclick="selectBS(false)" class="option-btn w-full text-left p-3 mb-2 border-2 rounded-xl ${answers[currentQ]===false?'selected':''}">✗ Salah</button>`;
+  } else if (q.type === 'esai') {
+    html += `<textarea id="esaiInput" onchange="saveEsai()" class="w-full border-2 border-blue-200 rounded-xl p-3 h-32 focus:outline-none focus:border-blue-400" placeholder="Tulis jawabanmu di sini...">${answers[currentQ]||''}</textarea>`;
+  }
+
+  document.getElementById('questionContainer').innerHTML = html;
+}
+
+function selectPG(i) { answers[currentQ] = i; renderQuestion(); }
+function selectBS(v) { answers[currentQ] = v; renderQuestion(); }
+function selectPGK(i) {
+  if (!answers[currentQ]) answers[currentQ] = [];
+  const idx = answers[currentQ].indexOf(i);
+  if (idx > -1) answers[currentQ].splice(idx, 1);
+  else answers[currentQ].push(i);
+  renderQuestion();
+}
+function saveEsai() { answers[currentQ] = document.getElementById('esaiInput').value; }
+
+function nextQuestion() {
+  if (questions[currentQ].type === 'esai') saveEsai();
+  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+  else showResults();
+}
+function prevQuestion() { if (currentQ > 0) { currentQ--; renderQuestion(); } }
+
+function showResults() {
+  let score = 0;
+  const totalPoints = 35; // 25 PG + 5 PGK + 5 BS (esai manual)
+  
+  questions.forEach((q, i) => {
+    if (q.type === 'pg' && answers[i] === q.answer) score++;
+    else if (q.type === 'bs' && answers[i] === q.answer) score++;
+    else if (q.type === 'pgk' && answers[i]) {
+      const correct = q.answers.sort().toString();
+      const given = [...answers[i]].sort().toString();
+      if (correct === given) score++;
+    }
+  });
+
+  const pct = Math.round((score / totalPoints) * 100);
+  document.getElementById('resultName').textContent = `Nama: ${playerName}`;
+  document.getElementById('resultScore').textContent = `${pct}/100`;
+  
+  let motivation, emoji;
+  if (pct >= 90) { motivation = '🌟 Luar biasa! Kamu sangat memahami materi surat!'; emoji = '🏆'; }
+  else if (pct >= 70) { motivation = '👏 Bagus sekali! Terus tingkatkan pemahamanmu!'; emoji = '🎉'; }
+  else if (pct >= 50) { motivation = '💪 Cukup baik! Ayo belajar lagi supaya lebih paham!'; emoji = '📚'; }
+  else { motivation = '🌱 Jangan menyerah! Pelajari lagi materinya ya!'; emoji = '💪'; }
+  
+  motivation += `\n\nSkor objektif: ${score}/${totalPoints}\nEsai: dinilai oleh guru`;
+  
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultMotivation').textContent = motivation;
+  document.getElementById('resultMotivation').style.whiteSpace = 'pre-line';
+  showPage('resultPage');
+}
+
+function resetQuiz() {
+  currentQ = 0;
+  answers = new Array(40).fill(null);
+  showPage('startPage');
+}
+
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a008d8d70f90fdc1',t:'MTc3OTU4OTQ5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
